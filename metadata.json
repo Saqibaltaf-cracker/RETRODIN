@@ -1,0 +1,8 @@
+{
+  "name": "retrodin",
+  "description": "90s Car sterio",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

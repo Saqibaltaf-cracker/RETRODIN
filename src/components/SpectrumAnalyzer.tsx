@@ -160,8 +160,9 @@ export const SpectrumAnalyzer: React.FC<Props> = ({
       return `rgba(74, 240, 74, ${alpha})`;
     };
 
-    const allowGlow = canvasGlow && !lowEndMode;
-    const isLowEndVideo = lowEndMode;
+    const isMobileBrowser = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && window.innerWidth <= 1024);
+    const allowGlow = canvasGlow && !lowEndMode && !isMobileBrowser;
+    const isLowEndVideo = lowEndMode || isMobileBrowser;
 
     const renderDotMatrixFromVideo = (
       v: HTMLVideoElement | null,
@@ -280,7 +281,7 @@ export const SpectrumAnalyzer: React.FC<Props> = ({
     let colors = getThemeColors();
     let frameCounter = 0;
     let lastDrawTime = 0;
-    const targetFps = fpsLimit !== undefined ? fpsLimit : (lowEndMode ? 30 : 60);
+    const targetFps = isMobileBrowser ? Math.min(30, fpsLimit !== undefined && fpsLimit > 0 ? fpsLimit : 30) : (fpsLimit !== undefined ? fpsLimit : (lowEndMode ? 30 : 60));
     // If targetFps <= 0: uncapped native monitor refresh rate (e.g. 144Hz, 240Hz, 360Hz)
     const frameInterval = targetFps > 0 ? 1000 / targetFps : 0;
 
@@ -1463,7 +1464,20 @@ export const SpectrumAnalyzer: React.FC<Props> = ({
   let canvasHeight = 134;
   let isPixelated = false;
 
-  if (displayMode === 'oled') {
+  const isMobileClient = typeof navigator !== 'undefined' && (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && window.innerWidth <= 1024));
+
+  if (isMobileClient) {
+    // Mobile optimization: run canvas raster buffer at native 270x134 (or 180x90) for silky 60fps responsiveness without GPU lag
+    if (oledResolution === '480P') {
+      canvasWidth = 180;
+      canvasHeight = 90;
+      isPixelated = true;
+    } else {
+      canvasWidth = 270;
+      canvasHeight = 134;
+      isPixelated = false;
+    }
+  } else if (displayMode === 'oled') {
     if (oledResolution === '480P') {
       canvasWidth = 180;
       canvasHeight = 90;
@@ -1479,7 +1493,7 @@ export const SpectrumAnalyzer: React.FC<Props> = ({
       isPixelated = false;
     }
   } else {
-    // In Matrix mode, internal buffer needs 540x268 to render high-definition circular phosphor dots crisply
+    // In Matrix mode on desktop, internal buffer needs 540x268 to render high-definition circular phosphor dots crisply
     canvasWidth = 540;
     canvasHeight = 268;
     isPixelated = false;

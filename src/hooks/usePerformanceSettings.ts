@@ -174,6 +174,14 @@ export function usePerformanceSettings() {
 
         parsed.glassReflection = 'none';
 
+        if (initialDiag.isMobile) {
+          parsed.lowEndMode = true;
+          parsed.canvasGlow = false;
+          parsed.disableLeatherSvgFilter = true;
+          parsed.fpsLimit = Math.min(30, parsed.fpsLimit || 30);
+          if (parsed.oledResolution === '1080P') parsed.oledResolution = '720P';
+        }
+
         return {
           ...getDefaultSettings(initialDiag.isLowEnd),
           ...parsed,

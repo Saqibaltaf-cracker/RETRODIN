@@ -33,7 +33,7 @@ export const Equalizer: React.FC<Props> = ({
   autoScanRadio
 }) => {
   return (
-    <div className="equalizer-deck-panel w-full h-[105px] min-h-[105px] max-h-[105px] px-2.5 pb-1.5 pt-1 border-t border-[#1a1a1a] bg-gradient-to-b from-[#121212] via-[#0e0e0e] to-[#080808] transition-all select-none flex-shrink-0 flex flex-col justify-between">
+    <div className="equalizer-deck-panel w-full h-[105px] min-h-[105px] max-h-[105px] px-2.5 pb-3.5 pt-0.5 border-t border-[#1a1a1a] bg-gradient-to-b from-[#121212] via-[#0e0e0e] to-[#080808] transition-all select-none flex-shrink-0 flex flex-col justify-between">
       {/* Top control bar with Illuminated LED Strip Border & Divider Border Below EQ Buttons */}
       <div className="flex items-center justify-between pb-1 mb-1 px-0.5 h-6 flex-shrink-0 border-b border-[#282b33] shadow-[0_1px_0_rgba(255,255,255,0.06)]">
         {/* Left EQ Cluster with Solid Thin LED Border (No Outer Glow) */}
@@ -140,7 +140,7 @@ export const Equalizer: React.FC<Props> = ({
 
               {/* Rocker switch with backlit translucent illumination */}
               <div 
-                className={`rocker-container backlit-rocker ${powered ? 'lit' : ''} ${isBooting ? 'booting' : ''} w-8 h-10 border border-[#000] shadow-[0_2px_5px_rgba(0,0,0,0.8)] flex-shrink-0`}
+                className={`rocker-container backlit-rocker ${powered ? 'lit' : ''} ${isBooting ? 'booting' : ''} w-8 h-[34px] border border-[#000] shadow-[0_2px_5px_rgba(0,0,0,0.8)] flex-shrink-0`}
                 style={{ '--boot-delay': `${bandDelay}s` } as React.CSSProperties}
               >
                 <button 
@@ -168,9 +168,9 @@ export const Equalizer: React.FC<Props> = ({
                 </button>
               </div>
 
-              {/* Backlit Band Frequency Label */}
+              {/* Backlit Band Frequency Label with safe bottom margin from chassis body */}
               <span 
-                className={`text-[6.5px] font-mono font-bold mt-0.5 tracking-tighter transition-all duration-300 eq-band-label ${powered ? 'lit text-[var(--color-lcd-primary)]' : 'text-zinc-600'}`}
+                className={`text-[6.5px] font-mono font-bold mt-1 mb-0.5 tracking-tighter transition-all duration-300 eq-band-label ${powered ? 'lit text-[var(--color-lcd-primary)]' : 'text-zinc-600'}`}
                 style={{ opacity: powered ? 'var(--backlight-multiplier, 1)' : 0.4 }}
               >
                 {BAND_LABELS[band]}

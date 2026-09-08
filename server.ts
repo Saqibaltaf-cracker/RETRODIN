@@ -19,7 +19,12 @@ async function startServer() {
     if (!streamUrl) return res.status(400).send("No URL");
 
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "*");
+
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(204);
+    }
 
     let activeReq: any = null;
 
@@ -31,9 +36,9 @@ async function startServer() {
           currentUrl,
           {
             headers: {
-              "User-Agent": "VLC/3.0.18 LibVLC/3.0.18",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
               "Accept": "*/*",
-              "Icy-MetaData": "1"
+              ...(req.headers.range ? { "Range": req.headers.range } : {})
             }
           },
           (proxyRes) => {
@@ -49,7 +54,18 @@ async function startServer() {
               return fetchStream(nextUrl, redirectsLeft - 1);
             }
 
+            res.setHeader("Access-Control-Allow-Origin", "*");
+            res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
             res.setHeader("Content-Type", proxyRes.headers["content-type"] || "audio/mpeg");
+            if (proxyRes.headers["content-range"]) {
+              res.setHeader("Content-Range", proxyRes.headers["content-range"]);
+            }
+            if (proxyRes.headers["accept-ranges"]) {
+              res.setHeader("Accept-Ranges", proxyRes.headers["accept-ranges"]);
+            }
+            if (proxyRes.statusCode) {
+              res.status(proxyRes.statusCode);
+            }
             proxyRes.pipe(res);
           }
         );

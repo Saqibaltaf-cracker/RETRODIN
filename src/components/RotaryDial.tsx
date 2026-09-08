@@ -30,6 +30,7 @@ export const RotaryDial: React.FC<Props> = ({
   const dialRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const startYRef = useRef(0);
+  const startXRef = useRef(0);
   const startValRef = useRef(value);
 
   // Map value to angle (-135 deg to +135 deg, 270 deg range)
@@ -40,16 +41,26 @@ export const RotaryDial: React.FC<Props> = ({
     if (!powered) return;
     isDraggingRef.current = true;
     startYRef.current = e.clientY;
+    startXRef.current = e.clientX;
     startValRef.current = value;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    if (dialRef.current) {
+      try {
+        dialRef.current.setPointerCapture(e.pointerId);
+      } catch (err) {
+        // ignore
+      }
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDraggingRef.current || !powered) return;
     const dy = startYRef.current - e.clientY;
+    const dx = e.clientX - startXRef.current;
+    // On phones & touchscreens, respond to whichever drag direction is dominant
+    const delta = Math.abs(dy) >= Math.abs(dx) ? dy : dx;
     const range = max - min;
-    const sensitivity = 120; // pixels for full range
-    const deltaVal = (dy / sensitivity) * range;
+    const sensitivity = 85; // highly responsive touch drag
+    const deltaVal = (delta / sensitivity) * range;
     let nextVal = Math.round((startValRef.current + deltaVal) / step) * step;
     nextVal = Math.max(min, Math.min(max, nextVal));
     onChange(nextVal);
@@ -58,10 +69,12 @@ export const RotaryDial: React.FC<Props> = ({
   const handlePointerUp = (e: React.PointerEvent) => {
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
-      try {
-        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-      } catch (err) {
-        // ignore
+      if (dialRef.current) {
+        try {
+          dialRef.current.releasePointerCapture(e.pointerId);
+        } catch (err) {
+          // ignore
+        }
       }
     }
   };

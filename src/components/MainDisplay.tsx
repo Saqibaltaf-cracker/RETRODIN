@@ -487,8 +487,8 @@ export const MainDisplay: React.FC<Props> = ({
             }}
           >
             <span>CQ-TX5500</span>
-            <span className={`rainbow-gradient-text tracking-wider text-[9.5px] ${perfSettings?.displayMode === 'matrix' ? 'drop-shadow-[0_0_8px_var(--color-lcd-primary)] font-bold' : ''}`}>
-              {perfSettings?.displayMode === 'matrix' ? 'MATRIX' : 'OLED'}
+            <span className="rainbow-gradient-text tracking-wider text-[9.5px]">
+              OLED
             </span>
           </span>
         </div>

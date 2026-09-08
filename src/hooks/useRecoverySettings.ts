@@ -204,6 +204,10 @@ export function useRecoverySettings({
           stereo.setTheme('blue');
           stereo.setDimmerLevel(1);
           stereo.setBacklitLevel(0);
+        } else {
+          stereo.setTheme('amber');
+          stereo.setDimmerLevel(1);
+          stereo.setBacklitLevel(3);
         }
         stereo.showToast(`CHASSIS: ${next ? 'SILVER' : 'BLACK'}`);
       },
@@ -214,6 +218,10 @@ export function useRecoverySettings({
           stereo.setTheme('blue');
           stereo.setDimmerLevel(1);
           stereo.setBacklitLevel(0);
+        } else {
+          stereo.setTheme('amber');
+          stereo.setDimmerLevel(1);
+          stereo.setBacklitLevel(3);
         }
         stereo.showToast(`CHASSIS: ${next ? 'SILVER' : 'BLACK'}`);
       }

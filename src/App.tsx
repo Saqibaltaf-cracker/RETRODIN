@@ -77,26 +77,34 @@ export default function App() {
         ('ontouchstart' in window) ||
         (navigator.maxTouchPoints > 0);
 
-      // In mobile browser, turning phone landscape -> go straight to carplay mode!
-      if (isMobile && w > h && w >= 480) {
-        setIsolated(true);
-        // Attempt fullscreen if permitted
-        try {
-          const docEl = document.documentElement as any;
-          if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
-            const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
-            if (req) {
-              const p = req.call(docEl, { navigationUI: 'hide' });
-              if (p && typeof p.catch === 'function') p.catch(() => {});
+      // In mobile browser, turning phone landscape -> straight up open CarPlay mode!
+      const screenType = (window.screen && (window.screen.orientation as any)?.type) || '';
+      const isLandscape = screenType.includes('landscape') || 
+        Math.abs(Number((window as any).orientation || 0)) === 90 || 
+        w > h;
+
+      if (isMobile) {
+        if (isLandscape && perfSettings.autoCarPlayLandscape !== false) {
+          setIsolated(true);
+          // Attempt fullscreen if permitted
+          try {
+            const docEl = document.documentElement as any;
+            if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
+              const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+              if (req) {
+                const p = req.call(docEl, { navigationUI: 'hide' });
+                if (p && typeof p.catch === 'function') p.catch(() => {});
+              }
             }
-          }
-        } catch (e) {}
-      } else if (isMobile && h > w) {
-        // Rotating back to portrait exits CarPlay mode
-        setIsolated(false);
+          } catch (e) {}
+        } else if (!isLandscape && perfSettings.autoCarPlayLandscape !== false) {
+          // Rotating back to portrait exits CarPlay mode
+          setIsolated(false);
+        }
       }
     };
 
+    updateDimensions();
     window.addEventListener('resize', updateDimensions);
     window.addEventListener('orientationchange', updateDimensions);
     if (window.screen && window.screen.orientation) {
@@ -109,7 +117,7 @@ export default function App() {
         window.screen.orientation.removeEventListener('change', updateDimensions);
       }
     };
-  }, []);
+  }, [perfSettings.autoCarPlayLandscape]);
 
   const prevSilverRef = React.useRef(perfSettings.vintageSilver);
   useEffect(() => {
@@ -117,6 +125,11 @@ export default function App() {
       stereo.setTheme('blue');
       stereo.setDimmerLevel(1);
       stereo.setBacklitLevel(0);
+    } else if (!perfSettings.vintageSilver && prevSilverRef.current) {
+      // When switching back to classic black anodized chassis, turn backlights back ON!
+      stereo.setTheme('amber');
+      stereo.setDimmerLevel(1);
+      stereo.setBacklitLevel(3);
     }
     prevSilverRef.current = perfSettings.vintageSilver;
   }, [perfSettings.vintageSilver, stereo]);

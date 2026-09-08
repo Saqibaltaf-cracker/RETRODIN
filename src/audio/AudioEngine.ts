@@ -145,33 +145,48 @@ export class AudioEngine {
     this.resume();
     this.stopSynth();
 
-    const tryPlay = (targetUrl: string, isFallback: boolean = false) => {
+    // Check if the URL is an external HTTP/HTTPS radio stream.
+    // Proxying through /api/proxy ensures same-origin CORS compliance for Web Audio API
+    // analyser and gain nodes so visualizer & volume work seamlessly on mobile browsers.
+    const isExternalUrl = (u: string) => {
+      if (!u.startsWith('http://') && !u.startsWith('https://')) return false;
+      try {
+        const origin = window.location.origin;
+        return !u.startsWith(origin) && !u.startsWith('/api/');
+      } catch (e) {
+        return true;
+      }
+    };
+
+    const targetUrl = isExternalUrl(url) ? `/api/proxy?url=${encodeURIComponent(url)}` : url;
+
+    const tryPlay = (streamUrl: string, isFallback: boolean = false) => {
       this.audioElement.onerror = isFallback
         ? null
         : () => {
-            if (!targetUrl.startsWith('/api/proxy') && !targetUrl.startsWith('blob:') && !targetUrl.startsWith('data:')) {
-              console.warn("Direct stream error encountered, switching to /api/proxy fallback...");
-              tryPlay(`/api/proxy?url=${encodeURIComponent(url)}`, true);
+            if (streamUrl !== url) {
+              console.warn("Proxy stream error, falling back to direct stream:", url);
+              tryPlay(url, true);
             }
           };
 
-      this.audioElement.src = targetUrl;
+      this.audioElement.src = streamUrl;
       this.audioElement.load();
       this.audioElement.play().catch(e => {
         // Interrupted by a newer station tune / load request; ignore safely without fallback
         if (e.name === 'AbortError') {
           return;
         }
-        if (!isFallback && !targetUrl.startsWith('/api/proxy') && !targetUrl.startsWith('blob:') && !targetUrl.startsWith('data:')) {
-          console.warn("Direct stream play rejected, switching to /api/proxy fallback:", e);
-          tryPlay(`/api/proxy?url=${encodeURIComponent(url)}`, true);
+        if (!isFallback && streamUrl !== url) {
+          console.warn("Proxy stream play rejected, falling back to direct stream:", e);
+          tryPlay(url, true);
         } else if (e.name !== 'NotAllowedError' && !this.isHardwareMuted) {
           console.warn("AudioEngine playStream notice:", e);
         }
       });
     };
 
-    tryPlay(url, false);
+    tryPlay(targetUrl, false);
   }
 
   public play() {
@@ -357,10 +372,14 @@ export class AudioEngine {
 
   public setVolume(volume: number, attenuated: boolean = false) {
     this.resume();
-    if (!this.masterGain) return;
     let val = this.isHardwareMuted ? 0 : Math.max(0, Math.min(1, volume));
     if (!this.isHardwareMuted && attenuated) val *= 0.2; 
     
+    try {
+      this.audioElement.volume = val;
+    } catch (e) {}
+
+    if (!this.masterGain) return;
     this.masterGain.gain.cancelScheduledValues(0);
     this.masterGain.gain.value = val;
     if (this.context && this.context.state === 'running') {

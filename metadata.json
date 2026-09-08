@@ -1,6 +1,6 @@
 {
   "name": "retrodin",
-  "description": "90s Car sterio",
+  "description": "Retro DIN - 90s JDM Car Stereo Player & Web Audio Spectrum Analyzer",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

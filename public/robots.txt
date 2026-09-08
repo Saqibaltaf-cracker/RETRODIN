@@ -1,0 +1,6 @@
+# Robots.txt for Retrodin - 90s Car Stereo Player
+User-agent: *
+Allow: /
+
+# Direct Googlebot and Bingbot to the sitemap
+Sitemap: /sitemap.xml
